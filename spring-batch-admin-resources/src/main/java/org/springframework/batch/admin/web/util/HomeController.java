@@ -15,7 +15,6 @@
  */
 package org.springframework.batch.admin.web.util;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -42,21 +41,19 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.util.ClassUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.support.HandlerMethodResolver;
-import org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping;
-import org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping;
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.web.util.UrlPathHelper;
 
 /**
  * Component that discovers request mappings in its application context and
  * reveals their meta data. Any {@link RequestMapping} annotations in controller
  * components at method or type level are discovered.
- * 
+ *
  * @author Dave Syer
- * 
+ *
  */
 @Controller
 public class HomeController implements ApplicationContextAware, InitializingBean {
@@ -78,7 +75,7 @@ public class HomeController implements ApplicationContextAware, InitializingBean
 	private Properties jsonProperties = null;
 
 	/**
-	 * 
+	 *
 	 * @see ApplicationContextAware#setApplicationContext(ApplicationContext)
 	 */
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -89,7 +86,7 @@ public class HomeController implements ApplicationContextAware, InitializingBean
 	 * The path that will be added to the model as an attribute ("servletPath")
 	 * before rendering. Defaults to the parent servlet path (as defined in the
 	 * http servlet request).
-	 * 
+	 *
 	 * @param servletPath the servlet path to set
 	 */
 	public void setServletPath(String servletPath) {
@@ -99,7 +96,7 @@ public class HomeController implements ApplicationContextAware, InitializingBean
 	/**
 	 * Pre-configured mapping from url path to description for default (HTML)
 	 * resources.
-	 * 
+	 *
 	 * @param defaultResources the default resources to set
 	 */
 	public void setDefaultResources(Properties defaultResources) {
@@ -110,7 +107,7 @@ public class HomeController implements ApplicationContextAware, InitializingBean
 	 * Pre-configured mapping from url path to description for JSON resources.
 	 * If empty the description will be replaced with the one from the
 	 * {@link #setDefaultResources(Properties) default resources}.
-	 * 
+	 *
 	 * @param jsonResources the json resources to set
 	 */
 	public void setJsonResources(Properties jsonResources) {
@@ -119,7 +116,7 @@ public class HomeController implements ApplicationContextAware, InitializingBean
 
 	/**
 	 * Create the meta data by querying the context for mappings.
-	 * 
+	 *
 	 * @see InitializingBean#afterPropertiesSet()
 	 */
 	public void afterPropertiesSet() throws Exception {
@@ -165,17 +162,22 @@ public class HomeController implements ApplicationContextAware, InitializingBean
 	}
 
 	private void findResources() {
-		Map<String, Object> handlerMap = new HashMap<String, Object>();
+		final Map<String, HandlerMethod> handlerMap = new HashMap<>();
 
-		DefaultAnnotationHandlerMapping annotationMapping = new DefaultAnnotationHandlerMapping();
+		RequestMappingHandlerMapping annotationMapping = new RequestMappingHandlerMapping();
+
 		annotationMapping.setApplicationContext(applicationContext);
-		annotationMapping.initApplicationContext();
-		handlerMap.putAll(annotationMapping.getHandlerMap());
+		annotationMapping
+				.getHandlerMethods()
+				.forEach((mappingInfo, handlerMethod) -> {
+                    String path = mappingInfo.toString();
+                    handlerMap.put(path, handlerMethod);
+				});
 
-		BeanNameUrlHandlerMapping beanMapping = new BeanNameUrlHandlerMapping();
-		beanMapping.setApplicationContext(applicationContext);
-		beanMapping.initApplicationContext();
-		handlerMap.putAll(beanMapping.getHandlerMap());
+//		BeanNameUrlHandlerMapping beanMapping = new BeanNameUrlHandlerMapping();
+//		beanMapping.setApplicationContext(applicationContext);
+//		beanMapping.initApplicationContext();
+//		handlerMap.putAll(beanMapping.getHandlerMap());
 
 		this.urls = findUniqueUrls(handlerMap.keySet());
 		this.defaultResources = findMethods(handlerMap, this.urls);
@@ -190,69 +192,60 @@ public class HomeController implements ApplicationContextAware, InitializingBean
 
 	}
 
-	private List<ResourceInfo> findMethods(Map<String, Object> handlerMap, Set<String> urls) {
+	private List<ResourceInfo> findMethods(Map<String, HandlerMethod> handlerMap, Set<String> urls) {
 
 		SortedSet<ResourceInfo> result = new TreeSet<ResourceInfo>();
 
 		for (String key : urls) {
+            HandlerMethod handlerMethod = handlerMap.get(key);
 
-			Object handler = handlerMap.get(key);
-			Class<?> handlerType = ClassUtils.getUserClass(handler);
-			HandlerMethodResolver resolver = new HandlerMethodResolver();
-			resolver.init(handlerType);
+            if (handlerMethod == null) {
+                result.add(new ResourceInfo(key, RequestMethod.GET));
+                continue;
+            }
 
 			String[] typeMappings = null;
-			RequestMapping typeMapping = AnnotationUtils.findAnnotation(handlerType, RequestMapping.class);
+			RequestMapping typeMapping = AnnotationUtils.findAnnotation(handlerMethod.getMethod(), RequestMapping.class);
 			if (typeMapping != null) {
 				typeMappings = typeMapping.value();
 			}
 
-			Set<Method> handlerMethods = resolver.getHandlerMethods();
-			for (Method method : handlerMethods) {
+            RequestMapping mapping = handlerMethod.getMethod().getAnnotation(RequestMapping.class);
 
-				RequestMapping mapping = method.getAnnotation(RequestMapping.class);
+            Collection<String> computedMappings = new HashSet<String>();
+            if (typeMappings != null) {
+                computedMappings.addAll(Arrays.asList(typeMappings));
+            }
 
-				Collection<String> computedMappings = new HashSet<String>();
-				if (typeMappings != null) {
-					computedMappings.addAll(Arrays.asList(typeMappings));
-				}
+            for (String path : mapping.value()) {
+                if (typeMappings != null) {
+                    for (String parent : computedMappings) {
+                        if (parent.endsWith("/")) {
+                            parent = parent.substring(0, parent.length() - 1);
+                        }
+                        computedMappings.add(parent + path);
+                    }
+                }
+                else {
+                    computedMappings.add(path);
+                }
+            }
 
-				for (String path : mapping.value()) {
-					if (typeMappings != null) {
-						for (String parent : computedMappings) {
-							if (parent.endsWith("/")) {
-								parent = parent.substring(0, parent.length() - 1);
-							}
-							computedMappings.add(parent + path);
-						}
-					}
-					else {
-						computedMappings.add(path);
-					}
-				}
-
-				logger.debug("Analysing mappings for method:" + method.getName() + ", key:" + key
-						+ ", computed mappings: " + computedMappings);
-				if (computedMappings.contains(key)) {
-					RequestMethod[] methods = mapping.method();
-					if (methods != null && methods.length > 0) {
-						for (RequestMethod requestMethod : methods) {
-							logger.debug("Added explicit mapping for path=" + key + "to RequestMethod=" + requestMethod);
-							result.add(new ResourceInfo(key, requestMethod));
-						}
-					}
-					else {
-						logger.debug("Added implicit mapping for path=" + key + "to RequestMethod=GET");
-						result.add(new ResourceInfo(key, RequestMethod.GET));
-					}
-				}
-
-			}
-
-			if (handlerMethods.isEmpty()) {
-				result.add(new ResourceInfo(key, RequestMethod.GET));
-			}
-
+            logger.debug("Analysing mappings for method:" + handlerMethod.getMethod().getName() + ", key:" + key
+                    + ", computed mappings: " + computedMappings);
+            if (computedMappings.contains(key)) {
+                RequestMethod[] methods = mapping.method();
+                if (methods != null && methods.length > 0) {
+                    for (RequestMethod requestMethod : methods) {
+                        logger.debug("Added explicit mapping for path=" + key + "to RequestMethod=" + requestMethod);
+                        result.add(new ResourceInfo(key, requestMethod));
+                    }
+                }
+                else {
+                    logger.debug("Added implicit mapping for path=" + key + "to RequestMethod=GET");
+                    result.add(new ResourceInfo(key, RequestMethod.GET));
+                }
+            }
 		}
 
 		return new ArrayList<ResourceInfo>(result);
@@ -286,7 +279,7 @@ public class HomeController implements ApplicationContextAware, InitializingBean
 	 * 
 	 * @return a map of URI pattern to request methods accepted
 	 */
-	@RequestMapping(value = { "/home" }, method = RequestMethod.GET)
+	@RequestMapping(value = { "", "/", "/home" }, method = RequestMethod.GET)
 	public String getResources(HttpServletRequest request, ModelMap model) {
 
 		String servletPath = this.servletPath;

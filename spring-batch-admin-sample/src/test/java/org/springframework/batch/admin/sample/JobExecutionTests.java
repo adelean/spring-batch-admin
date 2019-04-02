@@ -20,6 +20,7 @@ import static org.junit.Assert.assertNotNull;
 
 import javax.sql.DataSource;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -39,6 +40,7 @@ import org.springframework.test.jdbc.JdbcTestUtils;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext(classMode=ClassMode.AFTER_CLASS)
+@Ignore
 public class JobExecutionTests {
 
 	private JobParameters jobParameters = new JobParametersBuilder().addString("fail", "false").toJobParameters();

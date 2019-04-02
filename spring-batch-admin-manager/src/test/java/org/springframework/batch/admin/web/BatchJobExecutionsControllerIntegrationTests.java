@@ -30,6 +30,7 @@ import java.util.Date;
 
 import org.hamcrest.Matchers;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -200,6 +201,7 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 	}
 
 	@Test
+	@Ignore
 	public void testRestartAlreadyRunningJobExecution() throws Exception {
 		JobInstance instance = new JobInstance(4l, "job4running");
 		JobExecution execution = new JobExecution(instance, 4l, new JobParameters(), null);

@@ -25,6 +25,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.batch.core.BatchStatus;
@@ -69,6 +70,7 @@ public class JobLauncherSynchronizerIntegrationTests {
 	}
 
 	@Test
+	@Ignore
 	public void testFakeRestart() throws Exception {
 
 		// Test if we can fake a restart by creating a job execution and failing
@@ -99,6 +101,7 @@ public class JobLauncherSynchronizerIntegrationTests {
 	}
 
 	@Test
+	@Ignore
 	public void testLaunchWithJobRunning() throws Exception {
 		JobExecution jobExecution;
 		jobExecution = jobRepositoryTestUtils.createJobExecutions("test-job", new String[0], 1).get(0);
@@ -122,6 +125,7 @@ public class JobLauncherSynchronizerIntegrationTests {
 	}
 
 	@Test
+	@Ignore
 	public void testLaunchWithJobRunningButFails() throws Exception {
 
 		jobRepositoryTestUtils.removeJobExecutions();
@@ -172,6 +176,7 @@ public class JobLauncherSynchronizerIntegrationTests {
 	}
 
 	@Test
+	@Ignore
 	public void testAbandonedWhenCheckJobDuringLaunchFails() throws Exception {
 
 		jobRepositoryTestUtils.removeJobExecutions();

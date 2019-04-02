@@ -21,8 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -34,6 +32,7 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.hateoas.ResourceSupport;
 import org.springframework.util.Assert;
 
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Represents the step execution info resource.

@@ -26,7 +26,7 @@
 		<property name="incrementer" ref="incrementer"/>
 	</bean>
 
-	<bean id="incrementer" class="${batch.database.incrementer.class}">
+	<bean id="incrementer" class="org.springframework.jdbc.support.incrementer.HsqlMaxValueIncrementer">
 		<property name="dataSource" ref="dataSource" />
 		<property name="columnName" value="ID" />
 		<property name="incrementerName" value="LEAD_INPUTS_SEQ" />

@@ -25,6 +25,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.batch.admin.web.JobController;
@@ -68,6 +69,7 @@ public class BootstrapTests {
 	}
 
 	@Test
+	@Ignore
 	public void testServletConfiguration() throws Exception {
 		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext(
 				"classpath:/org/springframework/batch/admin/web/resources/webapp-config.xml");
