@@ -62,36 +62,7 @@
 			</properties>
 		</profile>
 		<profile>
-			<id>staging</id>
-			<distributionManagement>
-				<site>
-					<id>staging</id>
-					<url>file:///${user.dir}/target/staging</url>
-				</site>
-				<repository>
-					<id>staging</id>
-					<url>file:///${user.dir}/target/staging</url>
-				</repository>
-				<snapshotRepository>
-					<id>staging</id>
-					<url>file:///${user.dir}/target/staging</url>
-				</snapshotRepository>
-			</distributionManagement>
-		</profile>
-		<profile>
 			<id>central</id>
-			<distributionManagement>
-				<snapshotRepository>
-					<id>sonatype-nexus-snapshots</id>
-					<name>Sonatype Nexus Snapshots</name>
-					<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-				</snapshotRepository>
-				<repository>
-					<id>sonatype-nexus-staging</id>
-					<name>Nexus Release Repository</name>
-					<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-				</repository>
-			</distributionManagement>
 			<build>
 				<plugins>
 					<plugin>
@@ -654,22 +625,6 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
-	<distributionManagement>
-		<site>
-			<id>static.springframework.org</id>
-			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-batch-admin/trunk</url>
-		</site>
-		<repository>
-			<id>spring-release</id>
-			<name>Spring Release Repository</name>
-			<url>s3://maven.springframework.org/release</url>
-		</repository>
-		<snapshotRepository>
-			<id>spring-snapshot</id>
-			<name>Spring Snapshot Repository</name>
-			<url>https://repo.spring.io/libs-snapshot-local</url>
-		</snapshotRepository>
-	</distributionManagement>
 	<repositories>
 		<repository>
 			<id>spring-milestones</id>
@@ -693,4 +648,16 @@
 			</snapshots>
 		</repository>
 	</repositories>
+
+	<!-- Push binary to JCenter -->
+	<distributionManagement>
+		<repository>
+			<id>bintray</id>
+			<url>https://api.bintray.com/maven/hosuaby/adelean/spring-batch-admin;publish=1</url>
+		</repository>
+		<snapshotRepository>
+			<id>jfrog-snapshots</id>
+			<url>http://oss.jfrog.org/artifactory/oss-snapshot-local</url>
+		</snapshotRepository>
+	</distributionManagement>
 </project>
