@@ -653,7 +653,7 @@
 	<distributionManagement>
 		<repository>
 			<id>bintray</id>
-			<url>https://api.bintray.com/maven/hosuaby/adelean/spring-batch-admin;publish=1</url>
+			<url>https://api.bintray.com/maven/adelean/spring-batch-admin/spring-batch-admin;publish=1</url>
 		</repository>
 		<snapshotRepository>
 			<id>jfrog-snapshots</id>
